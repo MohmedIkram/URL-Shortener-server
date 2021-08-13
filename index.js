@@ -7,10 +7,10 @@ import { userRouter } from "./routes/users.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-console.log("test connection");
-// Opened Connection to DB, movieData - db name
-// process.env.MONGODB_URI ||
-const url = "mongodb://localhost/UrlShortener";
+const url =
+  "mongodb+srv://ikram:ikram98@cluster0.rlfdm.mongodb.net/UrlShortener";
+// ||
+// "mongodb://localhost/UrlShortener";
 
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
 const con = mongoose.connection;
