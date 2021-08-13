@@ -11,7 +11,7 @@ router.route("/").get(async (request, respone) => {
 });
 router
   .route("/:id")
-  .get(async (request, respone) => {
+  .get(nice, async (request, respone) => {
     const { id } = request.params;
     const user = await Users.findById(id);
     respone.send(user);
