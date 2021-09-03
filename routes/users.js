@@ -1,14 +1,28 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import express from "express";
 import jwt from "jsonwebtoken";
 import { auth as nice } from "../middleware/auth.js";
 import { Users } from "../models/users.js";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
 const router = express.Router();
 
+// nodemailer
+let transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.EPASSWORD,
+  },
+});
+
+// get all the users present
 router.route("/").get(async (request, respone) => {
   const users = await Users.find();
   respone.send(users);
 });
+
+// find user by id
 router
   .route("/:id")
   .get(nice, async (request, respone) => {
@@ -16,12 +30,13 @@ router
     const user = await Users.findById(id);
     respone.send(user);
   })
+  // delete particular user by id
   .delete(async (request, respone) => {
     const { id } = request.params;
     try {
       const user = await Users.findById(id);
       await user.remove();
-      // console.log();
+
       respone.send({
         name: user.name,
         id: user.id,
@@ -32,17 +47,19 @@ router
       respone.send("User is missing");
     }
   })
+
+  // upadte the details of user
   .patch(async (request, respone) => {
     const { id } = request.params;
-    const { name, avatar } = request.body;
+    const { name, email } = request.body;
 
     try {
       const user = await Users.findById(id);
       if (name) {
         user.name = name;
       }
-      if (avatar) {
-        user.avatar = avatar;
+      if (email) {
+        user.email = email;
       }
       await user.save();
       respone.send(user);
@@ -52,10 +69,12 @@ router
     }
   });
 
+// login route
+
 router.route("/login").post(async (request, respone) => {
-  const { name, password } = request.body;
+  const { email, password } = request.body;
   try {
-    const user = await Users.findOne({ name });
+    const user = await Users.findOne({ email });
     const inDbStoredPassword = user.password;
     const isMatch = await bcrypt.compare(password, inDbStoredPassword);
     if (!isMatch) {
@@ -68,6 +87,7 @@ router.route("/login").post(async (request, respone) => {
         token,
         message: "Successful login",
       });
+      response.redirect("http://localhost:5000/users/home");
     }
   } catch (err) {
     respone.status(500);
@@ -75,9 +95,9 @@ router.route("/login").post(async (request, respone) => {
   }
 });
 
-// Creating user
+// Creating user SiginUp route
 router.route("/signup").post(async (request, respone) => {
-  const { name, password } = request.body;
+  const { name, email, password } = request.body;
   try {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
@@ -85,18 +105,97 @@ router.route("/signup").post(async (request, respone) => {
 
     const user = new Users({
       name,
+      email,
       password: passwordHash,
     });
 
     await user.save();
     // db to store it
     respone.send(user);
+    response.redirect("http://localhost:5000/users/login");
   } catch (err) {
     respone.status(500);
     respone.send(err);
   }
 });
 
-export const userRouter = router;
+// forgoten password route to getenate random string and semt it via mail
 
-// s3 bucket
+router.route("/forgot-password").post(async (request, response) => {
+  const { email } = request.body;
+  try {
+    const user = await Users.findOne({ email: email });
+
+    crypto.randomBytes(32, async (err, buffer) => {
+      if (err) {
+        console.log(err);
+        return response.status(500).send({ message: "Can't generate token" });
+      }
+      const token = buffer.toString("hex");
+      if (!user) {
+        response.send({
+          message: `No user Found for this email ${email} Kindly Register and then try again `,
+        });
+      }
+      user.resetToken = token;
+      user.expiryTime = Date.now() + 3600000;
+      await user.save();
+      console.log("mail is going to be sent");
+      let ForgotMail = await transporter.sendMail({
+        from: "mohmedikram123@gmail.com",
+        to: `${user.email}`,
+        subject: "Password reset",
+        html: `<h4>Your request for password reset has been accepted </h4><br/> <p> To reset your password, 
+           <a href="http://localhost:3000/ResetPassword/${token}"> click here </a>`,
+      });
+      console.log("Forgotmail is", ForgotMail);
+      if (ForgotMail.accepted.length > 0) {
+        response.send({
+          message: "Mail Sent for Forgot Password!",
+        });
+        console.log(user);
+      } else if (ForgotMail.rejected.length == 1) {
+        response.send({ message: "Errors" });
+      }
+    });
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+// passworde reset route to change the password though the link sent to the users mail
+
+router.route("/reset-password/:resetToken").post(async (request, response) => {
+  const { resetToken } = request.params;
+  const { newPassword } = request.body;
+  try {
+    const salt = await bcrypt.genSalt(10);
+    const newpasswordHash = await bcrypt.hash(newPassword, salt);
+    const user = await Users.findOne({
+      resetToken: resetToken,
+    });
+
+    console.log("found User by Token", user);
+    if (user) {
+      user.password = newpasswordHash;
+      user.resetToken = undefined;
+      user.expiryTime = undefined;
+      await user.save();
+    }
+    console.log("updated User by Token", user);
+
+    response.send({ message: "changed password successfully", user });
+    response.redirect("http://localhost:5000/users/login");
+    // response.redirect(`http://localhost:5000/users/home/${token}`);
+  } catch (err) {
+    response.send(err);
+    console.log(err);
+  }
+});
+
+//User Logout
+router.route("/signout").get(async (request, respone) => {
+  respone.status(200).send("Logged out successfully");
+});
+
+export const userRouter = router;
