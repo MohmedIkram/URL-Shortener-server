@@ -87,7 +87,7 @@ router.route("/login").post(async (request, respone) => {
         token,
         message: "Successful login",
       });
-      response.redirect("http://localhost:5000/users/home");
+      // respone.redirect("http://localhost:5000/users/home");
     }
   } catch (err) {
     respone.status(500);
@@ -112,7 +112,7 @@ router.route("/signup").post(async (request, respone) => {
     await user.save();
     // db to store it
     respone.send(user);
-    response.redirect("http://localhost:5000/users/login");
+    // response.redirect("http://localhost:5000/users/login");
   } catch (err) {
     respone.status(500);
     respone.send(err);
