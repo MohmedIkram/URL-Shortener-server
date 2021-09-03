@@ -17,8 +17,8 @@ const con = mongoose.connection;
 con.on("open", () => console.log("MongoDB is connected"));
 
 // middleware
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
 app.get("/", (request, respone) => {
   respone.send("Welcome to node app!!!! Hi Guys");
