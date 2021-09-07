@@ -142,7 +142,7 @@ router.route("/forgot-password").post(async (request, response) => {
       await user.save();
       console.log("mail is going to be sent");
       let ForgotMail = await transporter.sendMail({
-        from: "mohmedikram123@gmail.com",
+        from: process.env.EMAIL,
         to: `${user.email}`,
         subject: "Password reset",
         html: `<h4>Your request for password reset has been accepted </h4><br/> <p> To reset your password, 
