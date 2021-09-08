@@ -24,6 +24,12 @@ app.get("/", (request, respone) => {
   respone.send("Welcome to node app!!!! Hi Guys");
 });
 
+// app.get("/jwt", (req, res) => {
+//   const token = jsonwebtoken.sign({ user: "johndoe" }, jwtSecret);
+//   res.cookie("token", token, { httpOnly: true });
+//   res.json({ token });
+// });
+
 app.use("/users", userRouter);
 
 app.use("/url", urlRouter);

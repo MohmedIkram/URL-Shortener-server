@@ -22,10 +22,11 @@ router
     }
   });
 
-router.route("/Fullurl/:shortUrl").get(async (request, respone) => {
+router.route("/:shortUrl").get(async (request, respone) => {
   const { shortUrl } = request.params;
   const fullurl = await ShortUrl.findOne({ shortUrl });
   respone.send(fullurl);
+  respone.redirect(fullurl);
 });
 
 export const urlRouter = router;
