@@ -9,7 +9,7 @@ router
   })
   .post(async (request, response) => {
     const addUrl = request.body;
-    console.log(addUrl);
+    // console.log(addUrl);
 
     const fullurl = new ShortUrl(addUrl);
 
@@ -26,7 +26,7 @@ router.route("/:shortUrl").get(async (request, respone) => {
   const { shortUrl } = request.params;
   const fullurl = await ShortUrl.findOne({ shortUrl });
   // respone.send(fullurl.FullUrl);
-  console.log(fullurl.FullUrl);
+  // console.log(fullurl.FullUrl);
   respone.redirect(fullurl.FullUrl);
 });
 
