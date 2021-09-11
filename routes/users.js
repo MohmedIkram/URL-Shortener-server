@@ -73,6 +73,7 @@ router
 
 router.route("/login").post(async (request, respone) => {
   const { email, password } = request.body;
+
   try {
     const user = await Users.findOne({ email });
     const inDbStoredPassword = user.password;
@@ -87,7 +88,6 @@ router.route("/login").post(async (request, respone) => {
         token,
         message: "Successful login",
       });
-      // respone.redirect("http://localhost:5000/users/home");
     }
   } catch (err) {
     respone.status(500);
@@ -101,7 +101,7 @@ router.route("/signup").post(async (request, respone) => {
   try {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
-    // console.log(passwordHash);
+    console.log(passwordHash);
 
     const user = new Users({
       name,
@@ -128,7 +128,7 @@ router.route("/forgot-password").post(async (request, response) => {
 
     crypto.randomBytes(32, async (err, buffer) => {
       if (err) {
-        // console.log(err);
+        console.log(err);
         return response.status(500).send({ message: "Can't generate token" });
       }
       const token = buffer.toString("hex");
@@ -140,7 +140,7 @@ router.route("/forgot-password").post(async (request, response) => {
       user.resetToken = token;
       user.expiryTime = Date.now() + 3600000;
       await user.save();
-      // console.log("mail is going to be sent");
+      console.log("mail is going to be sent");
       let ForgotMail = await transporter.sendMail({
         from: process.env.EMAIL,
         to: `${user.email}`,
@@ -148,12 +148,12 @@ router.route("/forgot-password").post(async (request, response) => {
         html: `<h4>Your request for password reset has been accepted </h4><br/> <p> To reset your password, 
            <a href="https://confident-spence-9b0ab7.netlify.app/ResetPassword/${token}"> click here </a>`,
       });
-      // console.log("Forgotmail is", ForgotMail);
+      console.log("Forgotmail is", ForgotMail);
       if (ForgotMail.accepted.length > 0) {
         response.send({
           message: "Mail Sent for Forgot Password!",
         });
-        // console.log(user);
+        console.log(user);
       } else if (ForgotMail.rejected.length == 1) {
         response.send({ message: "Errors" });
       }
@@ -175,21 +175,21 @@ router.route("/reset-password/:resetToken").post(async (request, response) => {
       resetToken: resetToken,
     });
 
-    // console.log("found User by Token", user);
+    console.log("found User by Token", user);
     if (user) {
       user.password = newpasswordHash;
       user.resetToken = undefined;
       user.expiryTime = undefined;
       await user.save();
     }
-    // console.log("updated User by Token", user);
+    console.log("updated User by Token", user);
 
     response.send({ message: "changed password successfully", user });
     response.redirect("http://localhost:5000/users/login");
     // response.redirect(`http://localhost:5000/users/home/${token}`);
   } catch (err) {
     response.send(err);
-    // console.log(err);
+    console.log(err);
   }
 });
 
