@@ -25,8 +25,9 @@ router
 router.route("/:shortUrl").get(async (request, respone) => {
   const { shortUrl } = request.params;
   const fullurl = await ShortUrl.findOne({ shortUrl });
-  respone.send(fullurl);
-  respone.redirect(fullurl);
+  // respone.send(fullurl.FullUrl);
+  console.log(fullurl.FullUrl);
+  respone.redirect(fullurl.FullUrl);
 });
 
 export const urlRouter = router;
