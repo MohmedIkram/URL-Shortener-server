@@ -1,11 +1,10 @@
 import express from "express";
 import { ShortUrl } from "../models/shorturls.js";
-import { auth as nice } from "../middleware/auth.js";
 
 const router = express.Router();
 router
   .route("/Fullurl")
-  .get(nice, async (request, response) => {
+  .get(async (request, response) => {
     const fullurl = await ShortUrl.find();
     response.send(fullurl);
   })
