@@ -71,7 +71,7 @@ router
 
 // login route
 
-router.route("/login").post(nice, async (request, respone) => {
+router.route("/login").post(async (request, respone) => {
   const { email, password } = request.body;
   try {
     const user = await Users.findOne({ email });
