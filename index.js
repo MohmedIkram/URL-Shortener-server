@@ -4,11 +4,13 @@ import express from "express";
 import mongoose from "mongoose";
 import { urlRouter } from "./routes/shorturls.js";
 import { userRouter } from "./routes/users.js";
+import dotenv from "dotenv";
+dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const url =
-  "mongodb+srv://ikram:ikram98@cluster0.rlfdm.mongodb.net/UrlShortener";
+const url = `mongodb+srv://ikram:${process.env.MongoPassword}@cluster0.rlfdm.mongodb.net/UrlShortener`;
 // ||
 // "mongodb://localhost/UrlShortener";
 
